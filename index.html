@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trading Research Terminal</title>
+  <style>
+    :root {
+      --bg: #090b10;
+      --panel: #11151d;
+      --panel2: #171c26;
+      --line: #252c38;
+      --muted: #8993a4;
+      --text: #e7ebf2;
+      --blue: #2962ff;
+      --green: #16a085;
+      --red: #f04452;
+      --yellow: #f0b90b
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font: 14px Inter, Segoe UI, Arial, sans-serif;
+      overflow: hidden
+    }
+
+    button,
+    input {
+      font: inherit
+    }
+
+    button {
+      cursor: pointer;
+      color: inherit
+    }
+
+    .top {
+      height: 56px;
+      background: #10141c;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 0 16px
+    }
+
+    .logo {
+      font-weight: 800;
+      font-size: 17px;
+      letter-spacing: .5px
+    }
+
+    .logo span {
+      color: #5b8cff
+    }
+
+    .symbol {
+      background: #202735;
+      border: 1px solid #30394a;
+      border-radius: 7px;
+      padding: 8px 12px;
+      font-weight: 700
+    }
+
+    .topbtn {
+      background: transparent;
+      border: 0;
+      color: #c3cad6;
+      padding: 8px
+    }
+
+    .topbtn:hover {
+      background: #202735;
+      border-radius: 6px
+    }
+
+    .spacer {
+      flex: 1
+    }
+
+    .pill {
+      border: 1px solid #30394a;
+      border-radius: 20px;
+      padding: 7px 12px;
+      color: #aab4c4
+    }
+
+    .layout {
+      height: calc(100vh - 56px);
+      display: grid;
+      grid-template-columns: 54px minmax(480px, 1fr) 330px 270px
+    }
+
+    .tools {
+      background: #10141c;
+      border-right: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      flex-direction: column;
+      padding: 8px 0;
+      gap: 5px
+    }
+
+    .tool {
+      width: 38px;
+      height: 38px;
+      border: 0;
+      background: transparent;
+      color: #aeb8c8;
+      border-radius: 7px;
+      font-size: 18px
+    }
+
+    .tool:hover,
+    .tool.active {
+      background: #26334a;
+      color: #75a5ff
+    }
+
+    .center {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      background: #080a0e
+    }
+
+    .charthead {
+      height: 48px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 0 14px;
+      white-space: nowrap
+    }
+
+    .charthead strong {
+      font-size: 14px
+    }
+
+    .charthead button {
+      border: 0;
+      background: transparent;
+      color: #b7c0ce
+    }
+
+    .tf {
+      padding: 5px 8px;
+      border-radius: 5px
+    }
+
+    .tf.active {
+      background: #26334a;
+      color: #78a7ff
+    }
+
+    .chartwrap {
+      position: relative;
+      flex: 1;
+      min-height: 300px
+    }
+
+    .chartwrap canvas {
+      width: 100%;
+      height: 100%;
+      display: block
+    }
+
+    .chart-label {
+      position: absolute;
+      top: 12px;
+      left: 14px;
+      color: #c9d1dc;
+      background: #090b10c9;
+      padding: 5px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      pointer-events: none
+    }
+
+    .chart-actions {
+      height: 42px;
+      border-top: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 0 14px;
+      color: var(--muted);
+      font-size: 12px
+    }
+
+    .tradepanel {
+      background: var(--panel);
+      border-left: 1px solid var(--line);
+      border-right: 1px solid var(--line);
+      padding: 12px;
+      overflow: auto
+    }
+
+    .paneltitle {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      font-weight: 700
+    }
+
+    .tabs {
+      display: flex;
+      background: #202631;
+      padding: 3px;
+      border-radius: 8px;
+      margin-bottom: 14px
+    }
+
+    .tabs button {
+      flex: 1;
+      border: 0;
+      background: transparent;
+      padding: 9px;
+      border-radius: 6px;
+      color: #aeb8c8
+    }
+
+    .tabs button.active {
+      background: #3a414e;
+      color: white
+    }
+
+    .quote {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 14px
+    }
+
+    .quote div {
+      padding: 11px;
+      background: #252b36
+    }
+
+    .quote div:last-child {
+      background: #142b55;
+      text-align: right
+    }
+
+    .quote small {
+      display: block;
+      color: #b5c0d1;
+      margin-bottom: 5px
+    }
+
+    .quote b {
+      font-size: 17px
+    }
+
+    .sell {
+      color: #ff6570
+    }
+
+    .buy {
+      color: #75a6ff
+    }
+
+    .field {
+      margin: 12px 0
+    }
+
+    .field label {
+      display: block;
+      color: #aab4c4;
+      font-size: 12px;
+      margin-bottom: 7px
+    }
+
+    .field input,
+    .field select {
+      width: 100%;
+      background: #0d1118;
+      border: 1px solid #343d4b;
+      border-radius: 7px;
+      color: #e7ebf2;
+      padding: 10px;
+      outline: none
+    }
+
+    .field input:focus {
+      border-color: #5788ff
+    }
+
+    .orderrow {
+      display: flex;
+      gap: 8px;
+      margin: 10px 0
+    }
+
+    .orderrow button {
+      flex: 1;
+      border: 1px solid #343d4b;
+      background: #0d1118;
+      padding: 9px;
+      border-radius: 7px;
+      color: #c6cfdd
+    }
+
+    .orderrow button.active {
+      border-color: #5788ff;
+      color: #8bb0ff
+    }
+
+    .metrics {
+      background: #0d1118;
+      border: 1px solid #29313d;
+      border-radius: 8px;
+      padding: 11px;
+      margin: 14px 0
+    }
+
+    .metric {
+      display: flex;
+      justify-content: space-between;
+      margin: 8px 0;
+      color: #aab4c4;
+      font-size: 12px
+    }
+
+    .metric b {
+      color: #e7ebf2
+    }
+
+    .action {
+      width: 100%;
+      border: 0;
+      border-radius: 8px;
+      padding: 13px;
+      font-weight: 700;
+      margin-top: 8px;
+      background: var(--blue);
+      color: white
+    }
+
+    .action.sellaction {
+      background: #d94250
+    }
+
+    .note {
+      font-size: 11px;
+      color: #7f8a9b;
+      line-height: 1.5;
+      margin-top: 12px
+    }
+
+    .watch {
+      background: #10141c;
+      overflow: auto
+    }
+
+    .watchhead {
+      padding: 15px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      font-weight: 700
+    }
+
+    .watchrow {
+      display: grid;
+      grid-template-columns: 1fr 72px 58px;
+      gap: 5px;
+      padding: 12px 13px;
+      border-bottom: 1px solid #202631;
+      font-size: 12px;
+      align-items: center
+    }
+
+    .watchrow.head {
+      color: #7f8a9b;
+      font-size: 11px
+    }
+
+    .watchrow.selected {
+      background: #202b3c;
+      border-left: 3px solid #4d83ff
+    }
+
+    .watchrow b {
+      font-size: 12px
+    }
+
+    .up {
+      color: #1ab891;
+      text-align: right
+    }
+
+    .down {
+      color: #f05a66;
+      text-align: right
+    }
+
+    .asset {
+      display: flex;
+      align-items: center;
+      gap: 8px
+    }
+
+    .coin {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: #d9a928;
+      color: #171717;
+      font-weight: 900
+    }
+
+    .bottom {
+      padding: 14px;
+      border-top: 1px solid var(--line);
+      margin-top: 10px
+    }
+
+    .balance {
+      font-size: 22px;
+      font-weight: 700;
+      margin: 7px 0
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 12px
+    }
+
+    @media(max-width:1050px) {
+      .layout {
+        grid-template-columns: 46px minmax(380px, 1fr) 300px
+      }
+
+      .watch {
+        display: none
+      }
+    }
+
+    @media(max-width:720px) {
+      body {
+        overflow: auto
+      }
+
+      .layout {
+        height: auto;
+        min-height: calc(100vh - 56px);
+        grid-template-columns: 42px minmax(0, 1fr)
+      }
+
+      .tradepanel,
+      .watch {
+        display: none
+      }
+
+      .center {
+        min-height: 650px
+      }
+
+      .top {
+        gap: 8px;
+        padding: 0 8px
+      }
+
+      .pill {
+        display: none
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header class="top">
+    <div class="logo">TR<span>•</span>LAB</div>
+    <div class="symbol">GOLD ▾</div>
+    <button class="topbtn">＋</button><button class="topbtn">D</button>
+    <button class="topbtn">▥ Indicators</button><button class="topbtn">◷ Alert</button><button class="topbtn">⟲
+      Replay</button>
+    <div class="spacer"></div><span class="pill">PAPER ACCOUNT</span><button class="topbtn">⚙</button>
+  </header>
+  <main class="layout">
+    <aside class="tools" aria-label="Công cụ biểu đồ">
+      <button class="tool active" title="Con trỏ">＋</button><button class="tool" title="Đường xu hướng">／</button>
+      <button class="tool" title="Đường ngang">☰</button><button class="tool" title="Kênh">⌁</button>
+      <button class="tool" title="Vẽ">✎</button><button class="tool" title="Văn bản">T</button>
+      <button class="tool" title="Đo lường">⌖</button><button class="tool" title="Phóng to">⊕</button>
+      <div style="flex:1"></div><button class="tool" title="Ẩn công cụ">◉</button><button class="tool"
+        title="Xóa">▤</button>
+    </aside>
+    <section class="center">
+      <div class="charthead">
+        <strong>🟡 Gold · 1D · Alpha Vantage</strong><span id="dataStatus" style="font-size:11px;color:#eab308">Đang tải
+          dữ liệu...</span><button id="refreshData" class="topbtn">↻ Làm mới</button>
+        <button class="tf active">1D</button><button class="tf">4H</button><button class="tf">1H</button><button
+          class="tf">15m</button>
+        <div class="spacer"></div><button>▥</button><button>⋯</button>
+      </div>
+      <div class="chartwrap"><canvas id="chart"></canvas>
+        <div class="chart-label" id="chartLabel">GOLD / USD　 Đang tải giá vàng...</div>
+      </div>
+      <div class="chart-actions">
+        <span>1D</span><span>5D</span><span>1M</span><span>3M</span><span>6M</span><span>YTD</span><span>1Y</span><span>5Y</span><span>ALL</span>
+        <div class="spacer"></div><span>DEMO DATA · NOT LIVE</span>
+      </div>
+    </section>
+    <aside class="tradepanel">
+      <div class="paneltitle"><span>🟡 GOLD</span><span class="muted">⋯　×</span></div>
+      <div class="tabs"><button class="active">Order</button><button>DOM</button></div>
+      <div class="quote">
+        <div><small>Sell</small><b class="sell">4,069.990</b></div>
+        <div><small>Buy</small><b class="buy">4,070.550</b></div>
+      </div>
+      <div class="orderrow"><button class="active">Market</button><button>Limit</button><button>Stop</button></div>
+      <div class="field"><label>Units / Khối lượng</label><input id="units" type="number" min="1" value="2"></div>
+      <div class="metrics">
+        <div class="metric"><span>Trade value (demo)</span><b id="tradeValue">8,140.00 USD</b></div>
+        <div class="metric"><span>Available balance</span><b id="balance">10,000.00 USD</b></div>
+        <div class="metric"><span>Estimated exposure</span><b id="exposure">16.3%</b></div>
+      </div>
+      <div class="field"><label>Take profit (giá mục tiêu)</label><input placeholder="Ví dụ: 4,120.00"></div>
+      <div class="field"><label>Stop loss (mức dừng mô phỏng)</label><input placeholder="Ví dụ: 4,020.00"></div>
+      <button class="action" id="buyBtn">Buy · Paper Trade</button>
+      <button class="action sellaction" id="sellBtn">Sell · Paper Trade</button>
+      <div class="note">Chế độ mô phỏng học tập. Các nút chỉ ghi nhận lệnh giả lập trên trang, không kết nối sàn và
+        không gửi giao dịch thật.</div>
+      <div class="bottom">
+        <div class="muted">PAPER ACCOUNT</div>
+        <div class="balance" id="balanceBig">$10,000.00</div>
+        <div class="muted">Equity mô phỏng · P/L chưa thực hiện: <span style="color:#1ab891">+$0.00</span></div>
+      </div>
+    </aside>
+    <aside class="watch">
+      <div class="watchhead"><span>Watchlist</span><span>＋　⋯</span></div>
+      <div class="watchrow head"><span>Symbol</span><span style="text-align:right">Last</span><span
+          style="text-align:right">Chg%</span></div>
+      <div class="watchrow"><span>▾ INDICES</span><span></span><span></span></div>
+      <div class="watchrow"><span>▾ STOCKS</span><span></span><span></span></div>
+      <div class="watchrow"><span class="asset"><i class="coin" style="background:#d9dce2">A</i><b>AAPL</b></span><span
+          style="text-align:right">231.45</span><span class="up">+0.82%</span></div>
+      <div class="watchrow"><span class="asset"><i class="coin"
+            style="background:#e53945;color:white">T</i><b>TSLA</b></span><span
+          style="text-align:right">358.22</span><span class="up">+4.23%</span></div>
+      <div class="watchrow"><span class="asset"><i class="coin"
+            style="background:#222;color:#e55">N</i><b>NFLX</b></span><span style="text-align:right">63.41</span><span
+          class="down">−3.28%</span></div>
+      <div class="watchrow"><span>▾ FUTURES</span><span></span><span></span></div>
+      <div class="watchrow"><span class="asset"><i class="coin">₿</i><b>BTCUSD</b></span><span
+          style="text-align:right">67,420</span><span class="up">+1.16%</span></div>
+      <div class="watchrow selected"><span class="asset"><i class="coin">Au</i><b>GOLD</b></span><span
+          style="text-align:right">4,069.63</span><span class="down">−0.43%</span></div>
+      <div class="bottom">
+        <div class="muted">GOLD · COMMODITY · DEMO</div>
+        <div class="balance">4,069.630 <small style="font-size:12px">USD</small></div>
+        <div class="down">−17.520　−0.43%</div>
+        <div class="muted" id="lastUpdate" style="margin-top:8px">Market data preview · Last update: demo</div>
+      </div>
+    </aside>
+  </main>
+  <script>
+    const canvas = document.getElementById('chart'), ctx = canvas.getContext('2d');
+    let history = [], spot = null, lastUpdate = null;
+    const fallback = [
+      { date: '2026-10-14', value: 4190 }, { date: '2026-10-15', value: 4170 }, { date: '2026-10-16', value: 4150 },
+      { date: '2026-10-19', value: 4110 }, { date: '2026-10-20', value: 4170 }, { date: '2026-10-21', value: 4155 },
+      { date: '2026-10-22', value: 4120 }, { date: '2026-10-23', value: 4095 }, { date: '2026-10-26', value: 4120 },
+      { date: '2026-10-27', value: 4000 }, { date: '2026-10-28', value: 3975 }, { date: '2026-10-29', value: 4020 },
+      { date: '2026-10-30', value: 4055 }, { date: '2026-11-02', value: 4000 }, { date: '2026-11-03', value: 3880 },
+      { date: '2026-11-04', value: 3945 }, { date: '2026-11-05', value: 3920 }, { date: '2026-11-06', value: 4069 }
+    ];
+    function draw() {
+      const r = canvas.getBoundingClientRect(), dpr = devicePixelRatio || 1; canvas.width = r.width * dpr; canvas.height = r.height * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      const w = r.width, h = r.height, left = 18, right = 70, top = 48, bottom = 30, cw = w - left - right, ch = h - top - bottom;
+      ctx.fillStyle = '#080a0e'; ctx.fillRect(0, 0, w, h);
+      const rows = history.length ? history : fallback;
+      const vals = rows.map(x => Number(x.value)).filter(Number.isFinite);
+      if (!vals.length) return;
+      let min = Math.min(...vals), max = Math.max(...vals), pad = (max - min) * .12 || 1; min -= pad; max += pad;
+      const x = i => left + (rows.length < 2 ? 0 : i / (rows.length - 1) * cw), y = v => top + (max - v) / (max - min) * ch;
+      ctx.font = '11px Segoe UI'; ctx.strokeStyle = '#202630'; ctx.fillStyle = '#8d98a9'; ctx.lineWidth = 1;
+      for (let i = 0; i <= 6; i++) { let v = min + (max - min) * i / 6, yy = y(v); ctx.beginPath(); ctx.moveTo(left, yy); ctx.lineTo(w - right, yy); ctx.stroke(); ctx.fillText(v.toFixed(2), w - right + 8, yy + 4) }
+      for (let i = 0; i <= 6; i++) { let xx = left + cw * i / 6; ctx.beginPath(); ctx.moveTo(xx, top); ctx.lineTo(xx, top + ch); ctx.stroke() }
+      ctx.strokeStyle = '#16a085'; ctx.lineWidth = 2; ctx.beginPath();
+      rows.forEach((p, i) => { let xx = x(i), yy = y(Number(p.value)); if (i === 0) ctx.moveTo(xx, yy); else ctx.lineTo(xx, yy) });
+      ctx.stroke();
+      const last = vals[vals.length - 1], yy = y(last);
+      ctx.setLineDash([4, 4]); ctx.strokeStyle = '#16a085'; ctx.beginPath(); ctx.moveTo(left, yy); ctx.lineTo(w - right, yy); ctx.stroke(); ctx.setLineDash([]);
+      ctx.fillStyle = '#16a085'; ctx.fillRect(w - right + 2, yy - 9, 65, 18); ctx.fillStyle = 'white'; ctx.fillText(last.toFixed(2), w - right + 5, yy + 4);
+      ctx.fillStyle = '#8792a4';
+      [0, Math.floor((rows.length - 1) * .25), Math.floor((rows.length - 1) * .5), Math.floor((rows.length - 1) * .75), rows.length - 1].forEach(i => { if (rows[i]) ctx.fillText(rows[i].date || '', x(i), h - 8) });
+    }
+    new ResizeObserver(draw).observe(canvas); window.addEventListener('resize', draw);
+
+    async function loadMarketData() {
+      const status = document.getElementById('dataStatus');
+      status.textContent = 'Đang tải...'; status.style.color = '#eab308';
+      try {
+        const [histRes, spotRes] = await Promise.all([
+          fetch('/api/gold/history'),
+          fetch('/api/gold/spot')
+        ]);
+        const hist = await histRes.json(), sp = await spotRes.json();
+        if (!histRes.ok) throw new Error(hist.error || 'Không lấy được lịch sử giá');
+        if (!spotRes.ok) throw new Error(sp.error || 'Không lấy được giá giao ngay');
+        history = hist.data || [];
+        spot = sp;
+        const p = Number(sp.price);
+        document.getElementById('chartLabel').textContent = `GOLD / USD　 Spot: ${Number.isFinite(p) ? p.toFixed(2) : 'N/A'}　 Nguồn: Alpha Vantage`;
+        document.querySelector('.balance').textContent = Number.isFinite(p) ? p.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' USD' : '--';
+        document.getElementById('lastUpdate').textContent = 'Nguồn: Alpha Vantage · Cập nhật: ' + (sp.lastUpdated || 'vừa xong') + ' · Giá spot không nhất thiết trùng CFD của broker';
+        status.textContent = 'LIVE API'; status.style.color = '#16a085';
+        draw();
+      } catch (err) {
+        status.textContent = 'API chưa kết nối'; status.style.color = '#f0b90b';
+        document.getElementById('lastUpdate').textContent = 'Chưa lấy được dữ liệu API: ' + err.message + ' · Biểu đồ đang hiển thị dữ liệu minh họa.';
+        history = []; draw();
+      }
+    }
+    document.getElementById('refreshData').addEventListener('click', loadMarketData);
+    loadMarketData();
+
+    const units = document.getElementById('units');
+    function update() { let n = Math.max(0, Number(units.value) || 0), v = n * 4070.0; document.getElementById('tradeValue').textContent = v.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' USD'; document.getElementById('exposure').textContent = (v / 10000 * 100).toFixed(1) + '%' }
+    units.addEventListener('input', update); update();
+    document.getElementById('buyBtn').onclick = () => alert('Đã ghi nhận lệnh BUY mô phỏng. Không có giao dịch thật được gửi đi.');
+    document.getElementById('sellBtn').onclick = () => alert('Đã ghi nhận lệnh SELL mô phỏng. Không có giao dịch thật được gửi đi.');
+    document.querySelectorAll('.tf').forEach(b => b.onclick = () => { document.querySelectorAll('.tf').forEach(x => x.classList.remove('active')); b.classList.add('active') });
+    document.querySelectorAll('.tabs button,.orderrow button').forEach(b => b.onclick = () => { b.parentElement.querySelectorAll('button').forEach(x => x.classList.remove('active')); b.classList.add('active') });
+  </script>
+</body>
+
+</html>
